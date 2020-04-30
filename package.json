@@ -4,12 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "webpack-dev-server --open"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "@typescript-eslint/eslint-plugin": "^2.22.0",
+    "@typescript-eslint/parser": "^2.22.0",
+    "eslint": "^6.1.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.20.1",
+    "jest": "^25.5.2",
+    "ts-jest": "^25.4.0",
     "ts-loader": "^6.2.1",
     "typescript": "^3.8.3",
     "webpack": "^4.42.0",
@@ -17,6 +26,7 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
+    "@jest/globals": "^25.5.2",
     "comlink": "^4.2.0"
   }
 }
