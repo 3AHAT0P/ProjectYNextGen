@@ -1,7 +1,8 @@
-import { waitMacro, nextMacro } from '../utils/delayers';
+import { nextMacro } from '../utils/delayers';
 
 export interface IListener {
-  (...args: unknown[]): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (...args: any[]): void;
 }
 
 type ListenerMeta = [IListener, boolean];

@@ -1,13 +1,18 @@
 import { Evented } from '@/common/utils/mixins/evented';
 
+export interface ITickEvent {
+  currentTime: number;
+  deltaTime: number;
+}
+
 export interface IEventLoopOptions {
-  frameRate?: number;
+  framesPerSecond?: number;
 }
 
 const BASE_FRAME_RATE = 60;
 
 export default class EventLoop extends Evented {
-  private _frameRate: number = BASE_FRAME_RATE;
+  private _frameRate: number = 0;
   private _currentFrameIndex: number = 0;
   private _timerId: number = null;
   private _startTime: number = null;
@@ -29,7 +34,11 @@ export default class EventLoop extends Evented {
   }
 
   public async init(options: IEventLoopOptions): Promise<void> {
-    if (options.frameRate != null) this._frameRate = options.frameRate;
+    if (options.framesPerSecond != null) {
+      if (options.framesPerSecond < 1) throw new Error('framesPerSecond should be greater than 0!');
+      const frameRate = BASE_FRAME_RATE / options.framesPerSecond;
+      this._frameRate = frameRate < 1 ? 0 : frameRate - 1;
+    }
   }
 
   public start(): void {
