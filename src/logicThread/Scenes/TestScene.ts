@@ -1,5 +1,8 @@
-import { loadImage } from '@/common/utils';
+import PureRenderingContext from '@/common/classes/PureRenderingContext';
 import Renderer from '../Renderer/Renderer';
+import { ISpriteOptions } from '../RenderedObject/Sprite';
+import { IRenderedObject } from '../RenderedObject/RenderedObject';
+import Flipbook, { IPipelineItem } from '../RenderedObject/Flipbook';
 
 const IMAGE_URLS = [
   '/images/idle1.png',
@@ -19,17 +22,18 @@ const IMAGE_URLS = [
 ];
 
 export default class TestScene {
-  private _index: number = 0;
-  private _images: ImageBitmap[] = [];
+  private _flipbook: Flipbook = new Flipbook();
 
   private _renderer: Renderer = null;
 
-  private _tick(ctx: OffscreenCanvasRenderingContext2D, deltaTime: number): void {
-    const image = this._images[this._index];
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width * 4, image.height * 4);
-    this._index += 1;
-    if (this._index >= this._images.length) this._index = 0;
+  private _tick(ctx: PureRenderingContext, deltaTime: number): void {
+    const renderObject: IRenderedObject = this._flipbook.render();
+    ctx.clear();
+    ctx.drawImage(
+      renderObject.source,
+      renderObject.x, renderObject.y, renderObject.width, renderObject.height,
+      0, 0, 256, 256,
+    );
     this._renderer.addZeroLayerTask({ cb: this._tick });
   }
 
@@ -39,7 +43,15 @@ export default class TestScene {
   }
 
   public async init(): Promise<void> {
-    this._images = await Promise.all(IMAGE_URLS.map(loadImage));
+    const spriteOptions: ISpriteOptions[] = [];
+    const pipeline: IPipelineItem[] = [];
+
+    IMAGE_URLS.forEach((url: string, index: number) => {
+      spriteOptions.push({ url });
+      pipeline.push({ spriteIndex: index });
+    });
+
+    await this._flipbook.applyOptions(spriteOptions, pipeline).init();
 
     this._renderer.addZeroLayerTask({ cb: this._tick });
   }

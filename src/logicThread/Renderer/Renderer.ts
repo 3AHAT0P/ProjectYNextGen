@@ -1,10 +1,12 @@
 import PriorityQueue from '@/common/classes/PriorityQueue';
+import Logger from '@/common/classes/Logger';
+import PureRenderingContext from '@/common/classes/PureRenderingContext';
 import EventLoop, { ITickEvent } from '../EventLoop';
 
 export type RendererConstructor = Constructor<Renderer>;
 
 export interface IRendererOptions {
-  canvas?: OffscreenCanvas;
+  renderingContext?: PureRenderingContext;
 }
 
 export interface IRenderer {
@@ -12,7 +14,7 @@ export interface IRenderer {
 }
 
 export interface IRenderingTask {
-  cb: (ctx: OffscreenCanvasRenderingContext2D, deltaTime: number) => void;
+  cb: (ctx: PureRenderingContext, deltaTime: number) => void;
 }
 
 export enum RenderingQueueName {
@@ -23,8 +25,7 @@ export enum RenderingQueueName {
 }
 
 export default class Renderer implements IRenderer {
-  private _canvas: OffscreenCanvas = null;
-  private _ctx: OffscreenCanvasRenderingContext2D = null;
+  private _renderingContext: PureRenderingContext = null;
 
   private _eventLoop: EventLoop = null;
   private _renderingQueue: PriorityQueue<IRenderingTask> = new PriorityQueue();
@@ -33,8 +34,8 @@ export default class Renderer implements IRenderer {
   private _loopIndex: number = 0;
   private _previousLoopIndex: number = -1;
 
-  public get width(): number { return this._canvas.width; }
-  public get height(): number { return this._canvas.height; }
+  public get width(): number { return this._renderingContext.width; }
+  public get height(): number { return this._renderingContext.height; }
 
   private _swapQueues(): void {
     const _freezedRenderingQueue = this._renderingQueue;
@@ -44,14 +45,14 @@ export default class Renderer implements IRenderer {
 
   private _runTasks({ currentTime, deltaTime }: ITickEvent): void {
     if (this._loopIndex === this._previousLoopIndex) {
-      console.warn('Rendering loop so long!');
+      Logger.warn('Rendering loop so long!');
       return;
     }
     this._previousLoopIndex = this._loopIndex;
     this._swapQueues();
     let task = this._freezedRenderingQueue.take();
     while (task != null) {
-      task.cb(this._ctx, deltaTime);
+      task.cb(this._renderingContext, deltaTime);
       task = this._freezedRenderingQueue.take();
     }
     this._loopIndex += 1;
@@ -63,11 +64,13 @@ export default class Renderer implements IRenderer {
     this._runTasks = this._runTasks.bind(this);
   }
 
-  public async init(options: IRendererOptions): Promise<void> {
-    this._canvas = options.canvas;
-    this._ctx = this._canvas.getContext('2d');
-    this._ctx.imageSmoothingEnabled = false;
+  public applyOptions(options: IRendererOptions): this {
+    this._renderingContext = options.renderingContext;
 
+    return this;
+  }
+
+  public async init(): Promise<void> {
     this._eventLoop.on('tick', this._runTasks);
   }
 

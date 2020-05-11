@@ -1,4 +1,5 @@
 import Logger, { LogLevel } from '@/common/classes/Logger';
+import PureRenderingContext from '@/common/classes/PureRenderingContext';
 import Renderer, { IRendererOptions } from '../Renderer/Renderer';
 import EventController from '../EventController';
 import EventLoop, { IEventLoopOptions } from '../EventLoop';
@@ -12,7 +13,7 @@ export default class MainLogicAgent {
   private _scene = new TestScene(this);
 
   private _eventLoopOptions: IEventLoopOptions = {};
-  private _rendererOptions: IRendererOptions = {};
+  private _rendererOptions: { canvas?: OffscreenCanvas } = {};
 
   get eventController(): EventController { return this._eventController; }
   get eventLoop(): EventLoop { return this._eventLoop; }
@@ -27,7 +28,10 @@ export default class MainLogicAgent {
 
   public async init(): Promise<void> {
     await this._eventLoop.init(this._eventLoopOptions);
-    await this._renderer.init(this._rendererOptions);
+    const renderingContext = await new PureRenderingContext()
+      .applyOptions(this._rendererOptions.canvas, { imageSmoothingEnabled: false })
+      .init();
+    await this._renderer.applyOptions({ renderingContext }).init();
     await this._scene.init();
 
     this.eventController.on('play', this.run);

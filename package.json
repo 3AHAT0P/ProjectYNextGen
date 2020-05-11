@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@jest/globals": "^25.5.2",
-    "comlink": "^4.2.0"
+    "@types/memoizee": "^0.4.4",
+    "comlink": "^4.2.0",
+    "memoizee": "^0.4.14"
   }
 }
